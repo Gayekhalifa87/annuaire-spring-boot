@@ -2,37 +2,43 @@ package com.annuaire.khalifa.annuaire.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Getter
 @Setter
 @Table(name = "employes")
 public class Employe {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "id_ann" ,nullable = false)
-    private  int idAnn;
-    @Column(name = "nom",nullable = false)
-    private String Nom;
-    @Column(name = "prenom",nullable = false)
-    private String Prenom ;
+    private int id; // PK auto-incrémentée
 
-    private String Email;
-    private String Telephone;
-    private String Password;
-    private int Ip;
+    @Column(unique = true, nullable = true)
+    private Integer ip; // nullable pour éviter les conflits
 
-    public Employe(){
+    @Column(nullable = false)
+    private String password;
 
-    }
-    public Employe(int id_ann, String nom, String prenom, String email, String password, String telephone, int ip){
-        this.idAnn = id_ann;
-        this.Nom = nom;
-        this.Prenom = prenom;
-        this.Email = email;
-        this.Telephone = telephone;
-        this.Password = password;
-        this.Ip = ip;
+    private String telephone;
+
+    @Column(nullable = false)
+    private String role;
+
+    @Column(name = "external_id")
+    private Integer employeId; // ID venant de la DB externe
+
+    public Employe() {}
+
+    public Employe(Integer ip, String password, String telephone, String role, Integer employeId) {
+        this.ip = ip;
+        this.password = password;
+        this.telephone = telephone;
+        this.role = role;
+        this.employeId = employeId;
     }
 }

@@ -1,25 +1,21 @@
 package com.annuaire.khalifa.annuaire.repository;
 
 import com.annuaire.khalifa.annuaire.models.Employe;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface EmployeRepository extends JpaRepository<Employe, Long> {
+public interface EmployeRepository extends JpaRepository<Employe, Integer> {
 
-    // Rechercher un employé par son email
-    Optional<Employe> findByEmail(String email);
-
-    // Vérifier si un email existe
-    boolean existsByEmail(String email);
-
-    //Rechercher en employe par son ip
     Optional<Employe> findByIp(int ip);
     boolean existsByIp(int ip);
 
-    //Rechercher par id
-    Optional<Employe> findByIdAnn(int idAnn);
-    boolean existsByIdAnn(int idAnn);
+    Optional<Employe> findByEmployeId(int employeId);
+    boolean existsByEmployeId(int employeId);
 
+    Optional<Employe> findByTelephone(String telephone);
+    boolean existsByTelephone(String telephone);
+
+    Optional<Employe> findById(int id);
+    boolean existsById(int id);
 }
