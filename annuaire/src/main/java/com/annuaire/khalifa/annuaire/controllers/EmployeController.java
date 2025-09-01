@@ -1,6 +1,7 @@
 package com.annuaire.khalifa.annuaire.controllers;
 
 import com.annuaire.khalifa.annuaire.dto.CombinedEmployeDTO;
+import com.annuaire.khalifa.annuaire.dto.LoginDTO;
 import com.annuaire.khalifa.annuaire.external.ExternalApiMockService;
 import com.annuaire.khalifa.annuaire.external.ExternalEmployeDTO;
 import com.annuaire.khalifa.annuaire.models.Employe;
@@ -112,5 +113,33 @@ public class EmployeController {
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+
+
+
+
+    //Connexon
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginDTO loginRequest) {
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
+
+        // Recherche l'employé correspondant à cet email via le mock
+        Optional<Employe> optionalEmploye = employeService.findByEmailMock(email);
+
+        if (optionalEmploye.isEmpty()) {
+            return ResponseEntity.status(401).body("Adresse email incorrect");
+        }
+
+        Employe employe = optionalEmploye.get();
+
+        // Vérifie le mot de passe stocké en interne
+        if (!employeService.checkPassword(employe, password)) {
+            return ResponseEntity.status(401).body("Mot de passe incorrect");
+        }
+
+        return ResponseEntity.ok("Connexion réussie ! Bienvenue " + employe.getIp());
+    }
+
 
 }

@@ -161,4 +161,24 @@ public class EmployeService {
     }
 
 
+
+    // Recherche via le mock
+    public Optional<Employe> findByEmailMock(String email) {
+        return employeRepository.findAll()
+                .stream()
+                .filter(e -> {
+                    if (e.getEmployeId() == null) return false;
+                    String externalEmail = externalApiMockService.getExternalEmploye(e.getEmployeId()).getEmail();
+                    return email.equalsIgnoreCase(externalEmail);
+                })
+                .findFirst();
+    }
+
+    // Vérifie le mot de passe
+    public boolean checkPassword(Employe employe, String rawPassword) {
+        return passwordEncoder.matches(rawPassword, employe.getPassword());
+    }
+
+
+
 }
