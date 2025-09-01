@@ -48,8 +48,6 @@ public class EmployeController {
         return employeService.getAllCombinedEmployes();
     }
 
-
-
     @GetMapping
     public List<Employe> getAllEmployes() {
         return employeService.getAllEmployes();
@@ -77,19 +75,50 @@ public class EmployeController {
     public Employe createEmploye(@RequestBody Employe employe) {
         return employeService.createEmploye(employe);
     }
-    //Modification d un employe
+//    //Modification d un employe
+//    @PutMapping("/{id}")
+//    public boolean updateEmploye(
+//            @PathVariable int id,
+//            @RequestBody Employe updatedEmploye) {
+//        // on reçoit un objet Employe contenant les nouvelles valeurs
+//        return employeService.updateEmploye(
+//                id,
+//                updatedEmploye.getIp(),
+//                updatedEmploye.getPassword(),
+//                updatedEmploye.getTelephone()
+//        );
+//    }
+
     @PutMapping("/{id}")
-    public boolean updateEmploye(
+    public ResponseEntity<Employe> updateEmploye(
             @PathVariable int id,
             @RequestBody Employe updatedEmploye) {
-        // on reçoit un objet Employe contenant les nouvelles valeurs
-        return employeService.updateEmploye(
-                id,
-                updatedEmploye.getIp(),
-                updatedEmploye.getPassword(),
-                updatedEmploye.getTelephone()
-        );
+
+        try {
+            Employe existing = employeService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employé non trouvé"));
+
+            if (updatedEmploye.getIp() != null) {
+                existing.setIp(updatedEmploye.getIp());
+            }
+
+            if (updatedEmploye.getTelephone() != null) {
+                existing.setTelephone(updatedEmploye.getTelephone());
+            }
+
+            if (updatedEmploye.getPassword() != null) {
+                existing.setPassword(employeService.encodePassword(updatedEmploye.getPassword()));
+            }
+
+            Employe saved = employeService.save(existing);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
+
+
 
     @PatchMapping("/{id}")
     public ResponseEntity<Employe> changeRole(@PathVariable int id) {

@@ -8,12 +8,12 @@ public class ExternalApiMockService {
     public ExternalEmployeDTO getExternalEmploye(int externalId) {
         ExternalEmployeDTO dto = new ExternalEmployeDTO();
         dto.setId(externalId);
-        dto.setNom("NomSimulé" + externalId);
-        dto.setPrenom("PrénomSimulé" + externalId);
-        dto.setEmail("user" + externalId + "@exemple.com");
-        dto.setDirection("Direction Simulée");
-        dto.setService("Service Simulé");
-        dto.setPoste("Poste Simulé");
+        dto.setNom("Sarr" + externalId);
+        dto.setPrenom("Aliou" + externalId);
+        dto.setEmail("gayekhalifa" + 99 + "@gmail.com");
+        dto.setDirection("DSI");
+        dto.setService("Developpement");
+        dto.setPoste("Developpeur");
         return dto;
     }
 }

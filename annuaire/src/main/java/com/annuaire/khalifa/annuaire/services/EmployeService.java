@@ -99,9 +99,6 @@ public class EmployeService {
         return externalApiMockService.getExternalEmploye(externalId).getEmail();
     }
 
-
-
-
     //OBTENIR LES EMPLOYES COMBINES PAR ID
     public CombinedEmployeDTO getCombinedEmploye(int id) {
         return employeRepository.findById(id)
@@ -177,6 +174,16 @@ public class EmployeService {
     // Vérifie le mot de passe
     public boolean checkPassword(Employe employe, String rawPassword) {
         return passwordEncoder.matches(rawPassword, employe.getPassword());
+    }
+
+
+    //POUR LA MODIF
+    public Employe save(Employe employe) {
+        return employeRepository.save(employe);
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
     }
 
 
