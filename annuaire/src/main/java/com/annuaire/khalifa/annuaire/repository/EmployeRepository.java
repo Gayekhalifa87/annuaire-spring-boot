@@ -10,6 +10,8 @@ public interface EmployeRepository extends JpaRepository<Employe, Integer> {
     Optional<Employe> findByIp(int ip);
     boolean existsByIp(int ip);
 
+
+
     Optional<Employe> findByEmployeId(int employeId);
     boolean existsByEmployeId(int employeId);
 

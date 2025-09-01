@@ -33,7 +33,6 @@ public class Historique {
     public Historique(Employe employe, String action, String utilisateur, LocalDate dateAction) {
         this.employe = employe; // peut être null si l'employé n'existe pas encore
         this.action = action;
-        this.utilisateur = utilisateur;
         this.dateAction = dateAction;
     }
 }

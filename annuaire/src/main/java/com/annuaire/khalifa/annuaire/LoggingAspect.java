@@ -19,7 +19,6 @@ public class LoggingAspect {
     @Autowired
     private EmployeService employeService; // injecter le service employé
 
-
     // Logger console avant l’exécution
     @Before("execution(* com.annuaire.khalifa.annuaire.services.EmployeService.*(..)) || " +
             "execution(* com.annuaire.khalifa.annuaire.services.HistoriqueService.*(..))")
@@ -54,7 +53,6 @@ public class LoggingAspect {
     public void logActionToDatabase(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         int employeId = -1;
-        String actionDescription = joinPoint.getSignature().getName();
 
         // Récupérer idEmploye depuis les arguments (adaptable selon la méthode)
         if(args != null && args.length > 0) {
@@ -65,9 +63,19 @@ public class LoggingAspect {
             }
         }
 
-        if(employeId != -1) {
-            employeService.findById(employeId).ifPresent(employe -> {
-                historiqueService.logAction("Appel de " + actionDescription, employe);
+        if (employeId != -1) {
+            final int finalEmployeId = employeId; // rendre l'ID final pour le lambda
+            employeService.findById(finalEmployeId).ifPresent(employe -> {
+                // Construire une description claire incluant l'action et l'ID de l'employé
+                String actionDescription = switch (joinPoint.getSignature().getName()) {
+                    case "createEmploye" -> "Ajout de l'employé avec ID " + finalEmployeId;
+                    case "deleteEmploye" -> "Suppression de l'employé avec ID " + finalEmployeId;
+                    case "switchRole" -> "Changement de rôle de l'employé avec ID " + finalEmployeId;
+                    case "updateEmploye" -> "Mise à jour de l'employé avec ID " + finalEmployeId;
+                    default -> "Action inconnue sur l'employé avec ID " + finalEmployeId;
+                };
+
+                historiqueService.logAction(actionDescription, employe);
             });
         }
 
