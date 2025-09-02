@@ -44,7 +44,6 @@ public class EmployeService {
 
         return employeRepository.findByTelephone(telephone);
     }
-
     //Creation d un nouvel employe
     public Employe createEmploye(Employe employe) {
         employe.setPassword(passwordEncoder.encode(employe.getPassword()));
@@ -79,10 +78,6 @@ public class EmployeService {
                 })
                 .orElse(null);
     }
-
-
-
-
 
 
     // Méthode pour récupérer le nombre total d'employés

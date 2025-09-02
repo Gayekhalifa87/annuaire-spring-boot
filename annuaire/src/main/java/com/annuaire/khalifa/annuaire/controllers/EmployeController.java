@@ -58,10 +58,6 @@ public class EmployeController {
         return employeService.getTotalEmployes();
     }
 
-//    @GetMapping("/search")
-//    public Optional<Employe> findByIp(@RequestParam int ip) {
-//        return employeService.findByIp(ip);
-//    }
 @GetMapping("/search")
 public ResponseEntity<CombinedEmployeDTO> searchCombinedByIp(@RequestParam int ip) {
     // Cherche dans la base interne
@@ -91,6 +87,18 @@ public ResponseEntity<CombinedEmployeDTO> searchCombinedByIp(@RequestParam int i
 
     return ResponseEntity.ok(combined);
 }
+
+//LA SUPPRESSION
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
+    boolean deleted = employeService.deleteEmploye(id);
+    if (deleted) {
+        return ResponseEntity.noContent().build(); // 204
+    } else {
+        return ResponseEntity.notFound().build(); // 404 si non trouvé
+    }
+}
+
 
 
     @GetMapping("/{id}")

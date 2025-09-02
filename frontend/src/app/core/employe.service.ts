@@ -40,6 +40,9 @@ export class EmployeService {
   updateEmploye(id: number, employee: Employe): Observable<Employe> {
     return this.http.put<Employe>(`${this.apiUrl}/${id}`, employee);
   }
+deleteEmploye(id: number): Observable<void> {
+  return this.http.delete<void>(`${this.apiUrl}/${id}`);
+}
 
 
 
@@ -47,5 +50,7 @@ export class EmployeService {
 searchByIp(ip: number): Observable<Employe | null> {
   return this.http.get<Employe>(`${this.apiUrl}/search`, { params: { ip: ip.toString() } });
 }
+
+
 
 }

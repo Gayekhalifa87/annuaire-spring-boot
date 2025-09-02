@@ -37,7 +37,6 @@ export class SearchComponent {
   });
 }
 
-
   clearSearch() {
     this.searchTerm = '';
     this.employes = []; // vide également la liste

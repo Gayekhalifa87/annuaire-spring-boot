@@ -15,8 +15,8 @@ public class Historique {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name = "employe_id", nullable = true) // nullable = true pour éviter erreur
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employe_id", nullable = false) // obligatoire pour un historique lié à un employé
     private Employe employe;
 
     @Column(name = "actions", nullable = false)
@@ -31,8 +31,9 @@ public class Historique {
     public Historique() {}
 
     public Historique(Employe employe, String action, String utilisateur, LocalDate dateAction) {
-        this.employe = employe; // peut être null si l'employé n'existe pas encore
+        this.employe = employe;
         this.action = action;
+        this.utilisateur = utilisateur;
         this.dateAction = dateAction;
     }
 }

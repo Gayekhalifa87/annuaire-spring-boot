@@ -92,6 +92,40 @@ export class AdminComponent {
     });
 }
 
+  // Supprimer un employé
+  deleteEmployee(emp: Employe) {
+  if (!emp.id) return;
+
+  Swal.fire({
+    title: `Supprimer ${emp.nom} ?`,
+    text: "Cette action est irréversible.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.employeService.deleteEmploye(emp.id!).subscribe({
+        next: () => {
+          this.employes = this.employes.filter(e => e.id !== emp.id);
+          Swal.fire({
+            icon: 'success',
+            title: 'Employé supprimé',
+            timer: 1500,
+          });
+        },
+        error: (err) => {
+          console.error('Erreur lors de la suppression :', err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: 'Impossible de supprimer l\'employé. Réessayez plus tard.'
+          });
+        }
+      });
+    }
+  });
+}
 
   // Réinitialiser le formulaire
   resetForm() {

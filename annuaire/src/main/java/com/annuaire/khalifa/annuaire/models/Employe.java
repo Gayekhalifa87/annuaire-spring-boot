@@ -1,12 +1,9 @@
 package com.annuaire.khalifa.annuaire.models;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.List;
 
 @Entity
 @Getter
@@ -19,7 +16,7 @@ public class Employe {
     private int id; // PK auto-incrémentée
 
     @Column(unique = true, nullable = true)
-    private Integer ip; // nullable pour éviter les conflits
+    private Integer ip;
 
     @Column(nullable = false)
     private String password;
@@ -31,6 +28,10 @@ public class Employe {
 
     @Column(name = "external_id")
     private Integer employeId; // ID venant de la DB externe
+
+    // ⚡ Relation avec Historique
+    @OneToMany(mappedBy = "employe", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Historique> historiques;
 
     public Employe() {}
 
