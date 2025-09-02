@@ -58,10 +58,40 @@ public class EmployeController {
         return employeService.getTotalEmployes();
     }
 
-    @GetMapping("/search")
-    public Optional<Employe> findByIp(@RequestParam int ip) {
-        return employeService.findByIp(ip);
+//    @GetMapping("/search")
+//    public Optional<Employe> findByIp(@RequestParam int ip) {
+//        return employeService.findByIp(ip);
+//    }
+@GetMapping("/search")
+public ResponseEntity<CombinedEmployeDTO> searchCombinedByIp(@RequestParam int ip) {
+    // Cherche dans la base interne
+    Optional<Employe> internalOpt = employeService.findByIp(ip);
+
+    if (internalOpt.isEmpty()) {
+        return ResponseEntity.notFound().build();
     }
+
+    // On récupère l'employé interne
+    Employe internal = internalOpt.get();
+
+    // Récupère les infos de la base externe via le mock
+    ExternalEmployeDTO external = externalApiMockService.getExternalEmploye(internal.getEmployeId());
+
+    // Combine les deux en DTO
+    CombinedEmployeDTO combined = new CombinedEmployeDTO();
+    combined.setId(internal.getId());
+    combined.setNom(external.getNom());
+    combined.setPrenom(external.getPrenom());
+    combined.setIp(internal.getIp());
+    combined.setTelephone(internal.getTelephone());
+    combined.setRole(internal.getRole());
+    combined.setPoste(external.getPoste());
+    combined.setDirection(external.getDirection());
+    combined.setService(external.getService());
+
+    return ResponseEntity.ok(combined);
+}
+
 
     @GetMapping("/{id}")
     //@PathVariable int id → récupère la valeur de {id} de l’URL et la passe à ta méthode

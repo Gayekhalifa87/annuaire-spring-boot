@@ -8,7 +8,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SearchComponent],
+  imports: [CommonModule, ReactiveFormsModule, CommonModule, SearchComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -81,6 +81,11 @@ export class AdminComponent {
       next: (updatedEmp) => {
         this.employes = this.employes.map(e => e.id === updatedEmp.id ? updatedEmp : e);
         this.resetForm();
+        Swal.fire({
+          icon: 'success',
+          title: 'Modification reussie',
+          timer: 1500,
+        })
         this.loadEmployees(); 
       },
       error: (err) => console.error('Erreur lors de la mise à jour :', err)

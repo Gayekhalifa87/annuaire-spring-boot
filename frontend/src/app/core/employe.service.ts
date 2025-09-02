@@ -36,9 +36,16 @@ export class EmployeService {
   return this.http.patch<Employe>(`${this.apiUrl}/${id}`, {});
 }
 
-
   //Modifier un employé
   updateEmploye(id: number, employee: Employe): Observable<Employe> {
     return this.http.put<Employe>(`${this.apiUrl}/${id}`, employee);
   }
+
+
+
+  // Recherche par IP
+searchByIp(ip: number): Observable<Employe | null> {
+  return this.http.get<Employe>(`${this.apiUrl}/search`, { params: { ip: ip.toString() } });
+}
+
 }
