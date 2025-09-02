@@ -16,4 +16,5 @@ public class ExternalApiMockService {
         dto.setPoste("Developpeur");
         return dto;
     }
+
 }

@@ -44,4 +44,18 @@ export class AuthService {
   get currentUser(): any {
     return this._currentUser.value;
   }
+
+
+  logout() {
+  // Supprime l'utilisateur localement
+  this._currentUser.next(null);
+  localStorage.removeItem('currentUser');
+
+  // Optionnel : notifier le backend
+  this.http.post('http://localhost:8080/api/employes/logout', {}).subscribe({
+    next: () => console.log('Déconnexion serveur OK'),
+    error: err => console.error('Erreur lors de la déconnexion', err)
+  });
+}
+
 }

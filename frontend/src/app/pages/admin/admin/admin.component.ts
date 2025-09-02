@@ -6,6 +6,8 @@ import { EmployeService, Employe } from '../../../core/employe.service';
 import Swal from 'sweetalert2';
 import { RouterLink } from "@angular/router";
 import { Input } from '@angular/core';
+import { AuthService } from '../../../core/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
@@ -32,6 +34,8 @@ export class AdminComponent {
 
   constructor(
     private employeService: EmployeService,
+    private authService: AuthService,
+    private router: Router,
     private fb: FormBuilder
   ) {
     this.addEmployeeForm = this.fb.group({
@@ -77,7 +81,6 @@ export class AdminComponent {
   const start = this.currentPage * this.pageSize;
   return this.employes.slice(start, start + this.pageSize);
 }
-
 
   /** 🔹 Pagination navigation */
   goToPreviousPage() {
@@ -192,5 +195,12 @@ export class AdminComponent {
     this.currentPage = 0;
     this.calculatePagination();
   }
+
+
+  logout() {
+  this.authService.logout();
+  this.router.navigate(['/acccueil']);
+}
+
 
 }

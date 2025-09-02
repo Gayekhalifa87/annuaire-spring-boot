@@ -221,6 +221,12 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
         return ResponseEntity.ok(dto);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+
+        return ResponseEntity.ok().build();
+    }
+
 
 
 
