@@ -30,6 +30,9 @@ export class EmployeService {
   getAllCombinedEmployes(): Observable<Employe[]> {
     return this.http.get<Employe[]>(`${this.apiUrl}/combined`);
   }
+  getTotalEmployes(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/count`);
+  }
 
   // Changement de rôle d'un employé (USER ↔ ADMIN)
  switchRole(id: number): Observable<Employe> {

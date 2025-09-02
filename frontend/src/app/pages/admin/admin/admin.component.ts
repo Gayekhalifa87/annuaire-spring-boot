@@ -30,6 +30,8 @@ export class AdminComponent {
   totalPages = 0;
   pages: number[] = [];
 
+  totalEmployes: number = 0;
+
 @Input() user: any;
 
   constructor(
@@ -64,6 +66,13 @@ export class AdminComponent {
       },
       error: (err) => console.error('Erreur lors du chargement des employés', err)
     });
+    // Charger le total des employés
+  this.employeService.getTotalEmployes().subscribe({
+    next: (count) => {
+      this.totalEmployes = count;
+    },
+    error: (err) => console.error('Erreur lors du chargement du total des employés', err)
+  });
   }
 
   /** 🔹 Calculer totalPages et pages */
@@ -201,6 +210,15 @@ export class AdminComponent {
   this.authService.logout();
   this.router.navigate(['/acccueil']);
 }
+
+ getTotalEmployes(): number {
+    let total = 0;
+    this.employeService.getTotalEmployes().subscribe({
+      next: (count) => total = count,
+      error: (err) => console.error('Erreur lors du chargement du total des employés', err)
+    });
+    return total;
+  }
 
 
 }
