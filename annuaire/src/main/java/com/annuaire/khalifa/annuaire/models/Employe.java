@@ -1,5 +1,6 @@
 package com.annuaire.khalifa.annuaire.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,7 @@ public class Employe {
 
     // ⚡ Relation avec Historique
     @OneToMany(mappedBy = "employe", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Historique> historiques;
 
     public Employe() {}

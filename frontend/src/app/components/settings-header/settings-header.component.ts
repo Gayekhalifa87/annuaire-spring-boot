@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Location } from '@angular/common'; 
 import { Router } from '@angular/router';
+import { Input } from '@angular/core';
 
 @Component({
   selector: 'app-settings-header',
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
   styleUrl: './settings-header.component.css'
 })
 export class SettingsHeaderComponent {
+  @Input() user: any;
 constructor(private router: Router) {}
 
   retour(): void {

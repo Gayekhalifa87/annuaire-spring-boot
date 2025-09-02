@@ -86,8 +86,6 @@ public class EmployeService {
         return employeRepository.count();
     }
 
-
-
     // Récupérer l'email depuis l'API externe simulée
     public String getEmailFromExternal(Integer externalId) {
         if (externalId == null) return null;

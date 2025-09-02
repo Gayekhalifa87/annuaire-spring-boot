@@ -181,32 +181,47 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
-
-
-
-    //Connexon
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
 
-        // Recherche l'employé correspondant à cet email via le mock
         Optional<Employe> optionalEmploye = employeService.findByEmailMock(email);
 
         if (optionalEmploye.isEmpty()) {
-            return ResponseEntity.status(401).body("Adresse email incorrect");
+            // Email non trouvé
+            return ResponseEntity
+                    .status(401)
+                    .body("Email inconnu ou utilisateur non trouvé");
         }
 
         Employe employe = optionalEmploye.get();
 
-        // Vérifie le mot de passe stocké en interne
         if (!employeService.checkPassword(employe, password)) {
-            return ResponseEntity.status(401).body("Mot de passe incorrect");
+            // Mot de passe incorrect
+            return ResponseEntity
+                    .status(401)
+                    .body("Mot de passe incorrect");
         }
 
-        return ResponseEntity.ok("Connexion réussie ! Bienvenue " + employe.getIp());
+        // Récupération des infos externes
+        ExternalEmployeDTO external = externalApiMockService.getExternalEmploye(employe.getEmployeId());
+
+        CombinedEmployeDTO dto = new CombinedEmployeDTO();
+        dto.setId(employe.getId());
+        dto.setNom(external.getNom());
+        dto.setPrenom(external.getPrenom());
+        dto.setIp(employe.getIp());
+        dto.setTelephone(employe.getTelephone());
+        dto.setRole(employe.getRole());
+        dto.setPoste(external.getPoste());
+        dto.setDirection(external.getDirection());
+        dto.setService(external.getService());
+
+        return ResponseEntity.ok(dto);
     }
+
+
 
 
 }

@@ -45,9 +45,53 @@ export class ConnexionComponent implements OnInit {
   }
 
   /** 🔹 Login via AuthService */
+/*   onLogin() {
+    if (this.connexionForm.invalid) {
+      const emailCtrl = this.connexionForm.get('email');
+      const pwdCtrl = this.connexionForm.get('password');
 
-  onLogin() {
+      this.emailErrorMessage = emailCtrl?.hasError('required') ? 'Email requis' :
+                               emailCtrl?.hasError('email') ? 'Email invalide' : '';
+      this.passwordErrorMessage = pwdCtrl?.hasError('required') ? 'Mot de passe requis' :
+                                  pwdCtrl?.hasError('minlength') ? 'Minimum 8 caractères' : '';
+      return;
+    }
+
+    const { email, password } = this.connexionForm.value;
+
+    this.authService.login(email, password).subscribe({
+      next: (res) => {
+        console.log('✅ Connexion réussie :', res);
+
+        // ✅ Met à jour l'utilisateur connecté via BehaviorSubject
+        this.authService.setCurrentUser(res);
+
+        // 🔹 Redirection vers /admin
+        this.router.navigate(['/admin']);
+      },
+      error: (err) => {
+        console.error('❌ Erreur de connexion :', err);
+
+        // Réinitialiser les messages
+        this.emailErrorMessage = '';
+        this.passwordErrorMessage = '';
+        this.message = '';
+
+        // Affichage selon le message du backend
+        if (err.toLowerCase().includes('email')) {
+          this.emailErrorMessage = err;
+        } else if (err.toLowerCase().includes('mot de passe') || err.toLowerCase().includes('password')) {
+          this.passwordErrorMessage = err;
+        } else {
+          this.message = err;
+        }
+      }
+    });
+  } */
+
+    onLogin() {
   if (this.connexionForm.invalid) {
+    // Validation côté frontend
     const emailCtrl = this.connexionForm.get('email');
     const pwdCtrl = this.connexionForm.get('password');
 
@@ -60,30 +104,34 @@ export class ConnexionComponent implements OnInit {
 
   const { email, password } = this.connexionForm.value;
 
-  
   this.authService.login(email, password).subscribe({
-  next: (res) => {
-    console.log('✅ Connexion réussie :', res);
-    this.router.navigate(['/admin']);
-  },
-  error: (err) => {
-    console.error('❌ Erreur de connexion :', err);
+    next: (res) => {
+      console.log('✅ Connexion réussie :', res);
 
-    // Réinitialiser les messages
-    this.emailErrorMessage = '';
-    this.passwordErrorMessage = '';
-    this.message = '';
+      // ✅ Stocker l'utilisateur connecté
+      this.authService.setCurrentUser(res);
 
-    // Affichage selon le message du backend
-    if (err.toLowerCase().includes('email')) {
-      this.emailErrorMessage = err;
-    } else if (err.toLowerCase().includes('mot de passe') || err.toLowerCase().includes('password')) {
-      this.passwordErrorMessage = err;
-    } else {
-      this.message = err;
+      // 🔹 Redirection
+      this.router.navigate(['/admin']);
+    },
+    error: (err) => {
+      console.error('❌ Erreur de connexion :', err);
+
+      // Réinitialiser messages
+      this.emailErrorMessage = '';
+      this.passwordErrorMessage = '';
+      this.message = '';
+
+      // Affichage selon le message reçu
+      if (err.toLowerCase().includes('email')) {
+        this.emailErrorMessage = err;
+      } else if (err.toLowerCase().includes('mot de passe') || err.toLowerCase().includes('password')) {
+        this.passwordErrorMessage = err;
+      } else {
+        this.message = err;
+      }
     }
-  }
-});
+  });
 }
 
   /** 🔹 Toggle mot de passe */
