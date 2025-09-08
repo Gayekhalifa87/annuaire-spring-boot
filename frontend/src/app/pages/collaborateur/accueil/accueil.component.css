@@ -75,7 +75,7 @@
   background: var(--white);
   border: 2px solid var(--gray-200);
   border-radius: var(--radius-xl);
-  padding: 0;
+  padding: 0;   
   box-shadow: var(--shadow-lg);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -540,6 +540,222 @@
   }
 }
 
+
+
+/* Directory Section */
+.directory-section {
+  padding: var(--spacing-10) 0;
+  min-height: 75vh;
+  background: linear-gradient(180deg, #f8f9fc 0%, #ffffff 50%, #f4f6fb 100%);
+}
+
+/* Employees Grid */
+.employees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-8);
+  max-width: 1400px;
+  margin: 0 auto var(--spacing-12);
+  padding: 0 var(--spacing-4);
+}
+
+/* Employee Card */
+.employee-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  position: relative;
+  border: 1px solid #e8eaf0;
+}
+
+.employee-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Animated Gradient Border */
+.employee-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 3px;
+  background: linear-gradient(135deg, #191970, #4f46e5, #22c55e, #facc15);
+  background-size: 300% 300%;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0.4s ease;
+}
+
+.employee-card:hover::before {
+  opacity: 1;
+  animation: gradientMove 6s ease infinite;
+}
+
+.employee-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Animation Gradient Move */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Employee Primary Info */
+.employee-primary {
+  background: linear-gradient(135deg, #f3f4f6, #ffffff);
+  padding: var(--spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  border-bottom: 1px solid #f0f2f6;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #191970;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  box-shadow: 0 6px 15px rgba(25, 25, 112, 0.3);
+  border: 4px solid #fff;
+  transition: transform 0.4s ease;
+}
+
+.employee-card:hover .avatar-circle {
+  transform: scale(1.1);
+}
+
+/* Employee Name & IP */
+.employee-identity {
+  flex: 1;
+}
+
+.employee-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #191970;
+  margin: 0 0 6px;
+}
+
+.employee-id-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #191970;
+  color: #fff;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: background 0.3s ease;
+}
+
+.employee-card:hover .employee-id-badge {
+  background: #4f46e5;
+}
+
+/* Employee Secondary Info */
+.employee-secondary {
+  text-align: center;
+  padding: var(--spacing-4) var(--spacing-6);
+  background: #f9fafb;
+}
+
+.employee-position {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 4px;
+}
+
+.employee-direction {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+/* Contact Section */
+.employee-contact {
+  padding: var(--spacing-5) var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.contact-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+  background: #e0e7ff;
+  color: #4f46e5;
+  transform: translateX(6px);
+}
+
+/* Service Tag */
+.service-tag {
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.employee-card:hover .service-tag {
+  background: #4f46e5;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .employees-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .employee-primary {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .employee-identity {
+    text-align: center;
+  }
+}
+
+
 /* Loading and Animation States */
 @media (prefers-reduced-motion: no-preference) {
   .employee-card {
@@ -564,3 +780,6 @@
     transform: translateY(0);
   }
 }
+
+
+

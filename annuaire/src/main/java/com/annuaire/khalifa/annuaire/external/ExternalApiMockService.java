@@ -10,11 +10,13 @@ public class ExternalApiMockService {
         dto.setId(externalId);
         dto.setNom("Sarr" + externalId);
         dto.setPrenom("Aliou" + externalId);
-        dto.setEmail("gayekhalifa" + 99 + "@gmail.com");
+
+        // Email fixe pour le test
+        dto.setEmail("gayekhalifa99@gmail.com");
+
         dto.setDirection("DSI");
         dto.setService("Developpement");
         dto.setPoste("Developpeur");
         return dto;
     }
-
 }

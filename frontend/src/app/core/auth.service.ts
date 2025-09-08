@@ -11,10 +11,16 @@ export class AuthService {
   private apiUrl = 'http://localhost:8080/api/employes/login';
 
   // ✅ BehaviorSubject pour suivre l'utilisateur connecté
-  private _currentUser = new BehaviorSubject<any>(null);
+  private _currentUser = new BehaviorSubject<any>(this.loadUserFromStorage());
   public currentUser$ = this._currentUser.asObservable();
 
   constructor(private http: HttpClient) {}
+
+  /** 🔹 Charger utilisateur depuis localStorage */
+  private loadUserFromStorage(): any {
+    const userData = localStorage.getItem('currentUser');
+    return userData ? JSON.parse(userData) : null;
+  }
 
   /** 🔹 Login */
   login(email: string, password: string): Observable<any> {
@@ -38,6 +44,7 @@ export class AuthService {
   /** 🔹 Mettre à jour l'utilisateur connecté */
   setCurrentUser(user: any) {
     this._currentUser.next(user);
+    localStorage.setItem('currentUser', JSON.stringify(user));
   }
 
   /** 🔹 Récupérer l'utilisateur actuel */
@@ -45,17 +52,15 @@ export class AuthService {
     return this._currentUser.value;
   }
 
-
+  /** 🔹 Déconnexion */
   logout() {
-  // Supprime l'utilisateur localement
-  this._currentUser.next(null);
-  localStorage.removeItem('currentUser');
+    this._currentUser.next(null);
+    localStorage.removeItem('currentUser');
 
-  // Optionnel : notifier le backend
-  this.http.post('http://localhost:8080/api/employes/logout', {}).subscribe({
-    next: () => console.log('Déconnexion serveur OK'),
-    error: err => console.error('Erreur lors de la déconnexion', err)
-  });
-}
-
+    // Optionnel : notifier le backend
+    this.http.post('http://localhost:8080/api/employes/logout', {}).subscribe({
+      next: () => console.log('Déconnexion serveur OK'),
+      error: err => console.error('Erreur lors de la déconnexion', err)
+    });
+  }
 }

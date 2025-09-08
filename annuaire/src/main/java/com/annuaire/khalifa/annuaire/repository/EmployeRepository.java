@@ -1,5 +1,7 @@
 package com.annuaire.khalifa.annuaire.repository;
 
+import java.util.Optional;
+
 import com.annuaire.khalifa.annuaire.models.Employe;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -20,4 +22,9 @@ public interface EmployeRepository extends JpaRepository<Employe, Integer> {
 
     Optional<Employe> findById(int id);
     boolean existsById(int id);
+
+
+        Optional<Employe> findByResetToken(String resetToken);
+
 }
+

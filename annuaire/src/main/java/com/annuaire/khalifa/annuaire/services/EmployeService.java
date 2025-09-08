@@ -1,4 +1,5 @@
 package com.annuaire.khalifa.annuaire.services;
+import java.security.SecureRandom;
 
 import com.annuaire.khalifa.annuaire.dto.CombinedEmployeDTO;
 import com.annuaire.khalifa.annuaire.external.ExternalApiMockService;
@@ -8,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +39,7 @@ public class EmployeService {
 
         return employeRepository.findByIp(ip);
     }
+
     public Optional<Employe> findByEmployeId(int employeId) {
 
         return employeRepository.findByEmployeId(employeId);
@@ -78,14 +82,11 @@ public class EmployeService {
                 })
                 .orElse(null);
     }
-
-
     // Méthode pour récupérer le nombre total d'employés
     public long getTotalEmployes() {
 
         return employeRepository.count();
     }
-
     // Récupérer l'email depuis l'API externe simulée
     public String getEmailFromExternal(Integer externalId) {
         if (externalId == null) return null;
@@ -97,7 +98,6 @@ public class EmployeService {
         return employeRepository.findById(id)
                 .map(employe -> {
                     CombinedEmployeDTO dto = new CombinedEmployeDTO();
-
                     // Infos internes
                     dto.setId(employe.getId());
                     dto.setIp(employe.getIp());
@@ -114,12 +114,10 @@ public class EmployeService {
                         dto.setService(external.getService());
                         dto.setPoste(external.getPoste());
                     }
-
                     return dto;
                 })
                 .orElse(null);
     }
-
     //OBTENIR TOUS LES EMPLOYES EN COMBINANT LES DEUX BASES DE DONNEES
 
     public List<CombinedEmployeDTO> getAllCombinedEmployes() {
@@ -144,7 +142,6 @@ public class EmployeService {
                         dto.setService(external.getService());
                         dto.setPoste(external.getPoste());
                     }
-
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -179,6 +176,32 @@ public class EmployeService {
         return passwordEncoder.encode(rawPassword);
     }
 
+    public Optional<Employe> findByResetToken(String token) {
+        return employeRepository.findByResetToken(token);
+    }
+
+
+
+    public String generateResetToken(Employe employe) {
+        String token = UUID.randomUUID().toString();
+        employe.setResetToken(token);
+        employe.setTokenExpiration(LocalDateTime.now().plusHours(1)); // valable 1h
+        employeRepository.save(employe);
+        return token;
+    }
+
+
+    public String generateTempPassword() {
+        SecureRandom random = new SecureRandom();
+        int length = 8;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(chars.length());
+            sb.append(chars.charAt(index));
+        }
+        return sb.toString();
+    }
 
 
 }

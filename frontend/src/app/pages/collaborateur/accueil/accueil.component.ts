@@ -16,7 +16,7 @@ export class AccueilComponent implements OnInit {
 
   employees: Employe[] = [];
   currentPage = 0;
-  pageSize = 6; // Nombre d'employés par page
+  pageSize = 8; // Nombre d'employés par page
   totalPages = 0;
   pages: number[] = [];
 

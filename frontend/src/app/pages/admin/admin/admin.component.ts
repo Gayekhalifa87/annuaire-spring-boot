@@ -1,13 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SearchComponent } from '../../../components/search/search.component';
 import { EmployeService, Employe } from '../../../core/employe.service';
 import Swal from 'sweetalert2';
-import { RouterLink } from "@angular/router";
-import { Input } from '@angular/core';
+import { RouterLink, Router } from "@angular/router";
 import { AuthService } from '../../../core/auth.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
@@ -17,7 +15,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent {
-
+  
   addEmployeeForm: FormGroup;
   showAddForm = false;
   isEditing = false;
@@ -26,13 +24,12 @@ export class AdminComponent {
 
   // Pagination
   currentPage = 0;
-  pageSize = 6; 
+  pageSize = 6;
   totalPages = 0;
   pages: number[] = [];
+  totalEmployes = 0;
 
-  totalEmployes: number = 0;
-
-@Input() user: any;
+  @Input() user: any;
 
   constructor(
     private employeService: EmployeService,
@@ -50,6 +47,7 @@ export class AdminComponent {
       ip: ['', Validators.required],
       telephone: ['', Validators.required],
       role: ['user', Validators.required],
+      password: [''] // Pour ajout uniquement
     });
   }
 
@@ -57,90 +55,102 @@ export class AdminComponent {
     this.loadEmployees();
   }
 
-  /** 🔹 Charger tous les employés et calculer pagination */
+  /** ✅ Charger employés + total */
   loadEmployees() {
     this.employeService.getAllCombinedEmployes().subscribe({
       next: (emps) => {
         this.employes = emps;
         this.calculatePagination();
       },
-      error: (err) => console.error('Erreur lors du chargement des employés', err)
+      error: (err) => console.error('Erreur chargement employés', err)
     });
-    // Charger le total des employés
-  this.employeService.getTotalEmployes().subscribe({
-    next: (count) => {
-      this.totalEmployes = count;
-    },
-    error: (err) => console.error('Erreur lors du chargement du total des employés', err)
-  });
+
+    this.employeService.getTotalEmployes().subscribe({
+      next: (count) => (this.totalEmployes = count),
+      error: (err) => console.error('Erreur total employés', err)
+    });
   }
 
-  /** 🔹 Calculer totalPages et pages */
+  /** ✅ Pagination */
   calculatePagination() {
     this.totalPages = Math.ceil(this.employes.length / this.pageSize);
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i);
-    if (this.currentPage >= this.totalPages) {
-      this.currentPage = this.totalPages - 1;
-    }
-    if (this.currentPage < 0) this.currentPage = 0;
+    this.currentPage = Math.min(this.currentPage, this.totalPages - 1);
   }
 
-  /** 🔹 Getter pour les employés de la page actuelle */
   get paginatedEmployes(): Employe[] {
-  const start = this.currentPage * this.pageSize;
-  return this.employes.slice(start, start + this.pageSize);
-}
+    const start = this.currentPage * this.pageSize;
+    return this.employes.slice(start, start + this.pageSize);
+  }
 
-  /** 🔹 Pagination navigation */
   goToPreviousPage() {
     if (this.currentPage > 0) this.currentPage--;
   }
-
   goToNextPage() {
     if (this.currentPage < this.totalPages - 1) this.currentPage++;
   }
-
   goToPage(page: number) {
     this.currentPage = page;
   }
 
-  /** 🔹 Formulaire ajout / édition */
+  /** ✅ Ouvrir modal Ajout */
   openAddForm() {
     this.resetForm();
     this.showAddForm = true;
   }
 
+  /** ✅ Ouvrir modal Édition */
   editEmployee(emp: Employe) {
     this.isEditing = true;
     this.editingEmployeeId = emp.id ?? null;
     this.addEmployeeForm.patchValue(emp);
     this.showAddForm = true;
+    this.isEditing = true;
+  this.showAddForm = true; // ✅ Ouvre la modal
+  this.addEmployeeForm.patchValue(emp); // ✅ Remplit le formulaire avec les données existantes
   }
 
+  /** ✅ Ajouter employé */
+  addEmploye() {
+    if (this.addEmployeeForm.invalid) return;
+
+    const newEmploye = this.addEmployeeForm.value;
+    this.employeService.addEmploye(newEmploye).subscribe({
+      next: (emp) => {
+        this.employes.push(emp);
+        this.resetForm();
+        Swal.fire({ icon: 'success', title: 'Employé ajouté', timer: 1500 });
+        this.loadEmployees();
+      },
+      error: (err) => {
+        console.error('Erreur ajout', err);
+        Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible d\'ajouter l\'employé.' });
+      }
+    });
+  }
+
+  /** ✅ Mettre à jour employé */
   updateEmploye() {
-  if (!this.editingEmployeeId) return;
+    if (!this.editingEmployeeId || this.addEmployeeForm.invalid) return;
 
-  const updatedData: Partial<Employe> = {};
-  if (this.addEmployeeForm.get('ip')?.dirty) updatedData.ip = this.addEmployeeForm.get('ip')?.value;
-  if (this.addEmployeeForm.get('telephone')?.dirty) updatedData.telephone = this.addEmployeeForm.get('telephone')?.value;
-  if (this.addEmployeeForm.get('password')?.dirty) updatedData.password = this.addEmployeeForm.get('password')?.value;
+    const updatedData = this.addEmployeeForm.value;
+    delete updatedData.password; // Pas de changement de mot de passe ici
 
-  this.employeService.updateEmploye(this.editingEmployeeId, updatedData as Employe)
-    .subscribe({
+    this.employeService.updateEmploye(this.editingEmployeeId, updatedData).subscribe({
       next: (updatedEmp) => {
-        // Mise à jour locale de la liste
         this.employes = this.employes.map(e => e.id === updatedEmp.id ? updatedEmp : e);
         this.resetForm();
         Swal.fire({ icon: 'success', title: 'Modification réussie', timer: 1500 });
-        this.loadEmployees(); 
-        this.calculatePagination(); 
+        this.loadEmployees();
       },
-      error: (err) => console.error('Erreur lors de la mise à jour :', err)
+      error: (err) => {
+        console.error('Erreur update', err);
+        Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de modifier l\'employé.' });
+      }
     });
-}
+  }
 
-
-  /** 🔹 Supprimer un employé */
+  /** ✅ Supprimer employé */
   deleteEmployee(emp: Employe) {
     if (!emp.id) return;
 
@@ -161,36 +171,35 @@ export class AdminComponent {
             this.loadEmployees();
           },
           error: (err) => {
-            console.error('Erreur lors de la suppression :', err);
-            Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de supprimer l\'employé.' });
+            console.error('Erreur suppression', err);
+            Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de supprimer.' });
           }
         });
       }
     });
   }
 
-  /** 🔹 Changer rôle */
+  /** ✅ Changer rôle */
   switchRole(emp: Employe) {
     if (!emp.id) return;
-    this.employeService.switchRole(emp.id).subscribe({
-  next: (updatedEmp) => { // updatedEmp est un Employe
-    this.employes = this.employes.map(e => e.id === updatedEmp.id ? updatedEmp : e);
-    Swal.fire({ 
-      icon: 'success', 
-      title: 'Succès', 
-      text: `Le rôle de ${updatedEmp.nom} est maintenant ${updatedEmp.role}`, 
-      timer: 2000, 
-      showConfirmButton: false 
-    });
-    this.calculatePagination();
-    this.loadEmployees();
-  },
-  error: () => Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de changer le rôle.' })
-});
 
+    this.employeService.switchRole(emp.id).subscribe({
+      next: (updatedEmp) => {
+        this.employes = this.employes.map(e => e.id === updatedEmp.id ? updatedEmp : e);
+        Swal.fire({
+          icon: 'success',
+          title: 'Succès',
+          text: `Le rôle de ${updatedEmp.nom} est maintenant ${updatedEmp.role}`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.loadEmployees();
+      },
+      error: () => Swal.fire({ icon: 'error', title: 'Erreur', text: 'Impossible de changer le rôle.' })
+    });
   }
 
-  /** 🔹 Réinitialiser le formulaire */
+  /** ✅ Réinitialiser modal */
   resetForm() {
     this.addEmployeeForm.reset({ role: 'user' });
     this.showAddForm = false;
@@ -198,27 +207,16 @@ export class AdminComponent {
     this.editingEmployeeId = null;
   }
 
-  /** 🔹 Recherche via le composant Search */
+  /** ✅ Résultat recherche */
   onSearchResult(results: Employe[]) {
     this.employes = results;
     this.currentPage = 0;
     this.calculatePagination();
   }
 
-
+  /** ✅ Déconnexion */
   logout() {
-  this.authService.logout();
-  this.router.navigate(['/acccueil']);
-}
-
- getTotalEmployes(): number {
-    let total = 0;
-    this.employeService.getTotalEmployes().subscribe({
-      next: (count) => total = count,
-      error: (err) => console.error('Erreur lors du chargement du total des employés', err)
-    });
-    return total;
+    this.authService.logout();
+    this.router.navigate(['/accueil']);
   }
-
-
 }

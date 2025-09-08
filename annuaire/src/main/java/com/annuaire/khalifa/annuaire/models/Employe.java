@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -29,6 +31,13 @@ public class Employe {
 
     @Column(name = "external_id")
     private Integer employeId; // ID venant de la DB externe
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "token_expiration")
+    private LocalDateTime tokenExpiration;
+
 
     // ⚡ Relation avec Historique
     @OneToMany(mappedBy = "employe", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

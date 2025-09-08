@@ -1,7 +1,9 @@
 package com.annuaire.khalifa.annuaire.controllers;
 
 import com.annuaire.khalifa.annuaire.dto.CombinedEmployeDTO;
+import com.annuaire.khalifa.annuaire.dto.EmailDTO;
 import com.annuaire.khalifa.annuaire.dto.LoginDTO;
+import com.annuaire.khalifa.annuaire.dto.ResetPasswordDTO;
 import com.annuaire.khalifa.annuaire.external.ExternalApiMockService;
 import com.annuaire.khalifa.annuaire.external.ExternalEmployeDTO;
 import com.annuaire.khalifa.annuaire.models.Employe;
@@ -10,6 +12,7 @@ import com.annuaire.khalifa.annuaire.services.EmployeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,19 +116,7 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
     public Employe createEmploye(@RequestBody Employe employe) {
         return employeService.createEmploye(employe);
     }
-//    //Modification d un employe
-//    @PutMapping("/{id}")
-//    public boolean updateEmploye(
-//            @PathVariable int id,
-//            @RequestBody Employe updatedEmploye) {
-//        // on reçoit un objet Employe contenant les nouvelles valeurs
-//        return employeService.updateEmploye(
-//                id,
-//                updatedEmploye.getIp(),
-//                updatedEmploye.getPassword(),
-//                updatedEmploye.getTelephone()
-//        );
-//    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Employe> updateEmploye(
@@ -226,6 +217,61 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
 
         return ResponseEntity.ok().build();
     }
+
+
+  //MOT DE PASSE OUBLIE
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody EmailDTO emailDTO) {
+        String email = emailDTO.getEmail();
+        Optional<Employe> optionalEmploye = employeService.findByEmailMock(email);
+
+        if (optionalEmploye.isEmpty()) {
+            return ResponseEntity.status(404).body("Email inconnu");
+        }
+
+        Employe employe = optionalEmploye.get();
+        String token = employeService.generateResetToken(employe);
+
+        // URL vers le frontend
+        String url = "http://localhost:4200/reset-password/" + token;
+        String subject = "Réinitialisation de votre mot de passe";
+        String body = "Bonjour,\n\nCliquez sur ce lien pour réinitialiser votre mot de passe : " + url +
+                "\nCe lien est valable 1 heure.";
+
+
+        emailService.sendSimpleEmail(email, subject, body);
+
+        return ResponseEntity.ok("Email de réinitialisation envoyé !");
+    }
+
+
+
+    //REINITIALISATION MOT DE PASSE
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        Optional<Employe> optionalEmploye = employeService.findByResetToken(dto.getToken());
+
+        if (optionalEmploye.isEmpty()) {
+            return ResponseEntity.status(404).body("Token invalide");
+        }
+
+        Employe employe = optionalEmploye.get();
+
+        if (employe.getTokenExpiration().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(400).body("Token expiré");
+        }
+
+        employe.setPassword(employeService.encodePassword(dto.getNewPassword()));
+        employe.setResetToken(null);
+        employe.setTokenExpiration(null);
+        employeService.save(employe); // Utilise la méthode save() du service
+
+        return ResponseEntity.ok("Mot de passe réinitialisé avec succès !");
+    }
+
+
 
 
 

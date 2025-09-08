@@ -6,8 +6,8 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-reset-password',
-  standalone: true, // <-- IMPORTANT pour Angular standalone
-  imports: [CommonModule, FormsModule], // <-- importer FormsModule ici
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css']
 })
@@ -17,31 +17,40 @@ export class ResetPasswordComponent implements OnInit {
   confirm = '';
 
   showPassword = false;
-  confrm = false;
-  showConfirm: any;
+  showConfirm = false;
 
-  constructor(private route: ActivatedRoute, private http: HttpClient, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.token = this.route.snapshot.paramMap.get('token')!;
+    // Récupération du token depuis le paramètre de route
+    this.route.paramMap.subscribe(params => {
+      this.token = params.get('token')!;
+      console.log('Token récupéré :', this.token);
+    });
   }
 
   onSubmit() {
     if (this.password !== this.confirm) {
-      /* alert('Les mots de passe ne correspondent pas'); */
+      alert('Les mots de passe ne correspondent pas');
       return;
     }
-    this.http.post(`http://localhost:3000/api/employes/reset-password/${this.token}`, { newPassword: this.password })
-
-      .subscribe({
-        next: (res: any) => {
-          /* alert(res.message); */
-          this.router.navigate(['/login']);
-        },
-        error: (err) => {
-          console.error(err);
-          alert(err.error?.message || 'Erreur lors de la réinitialisation');
-        }
-      });
+    this.http.post(
+  'http://localhost:8080/api/employes/reset-password',
+  { token: this.token, newPassword: this.password },
+  { responseType: 'text' } // <-- important
+).subscribe({
+  next: (res: any) => {
+    alert(res); // "Mot de passe réinitialisé avec succès !"
+    this.router.navigate(['/login']);
+  },
+  error: (err) => {
+    console.error(err);
+    alert(err.error?.message || 'Erreur lors de la réinitialisation');
+  }
+});
   }
 }

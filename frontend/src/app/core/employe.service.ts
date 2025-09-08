@@ -39,6 +39,10 @@ export class EmployeService {
   return this.http.patch<Employe>(`${this.apiUrl}/${id}`, {});
 }
 
+addEmploye(employe: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/employes`, employe);
+}
+
   //Modifier un employé
   updateEmploye(id: number, employee: Employe): Observable<Employe> {
     return this.http.put<Employe>(`${this.apiUrl}/${id}`, employee);
