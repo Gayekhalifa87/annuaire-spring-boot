@@ -8,6 +8,7 @@ import com.annuaire.khalifa.annuaire.models.Employe;
 import com.annuaire.khalifa.annuaire.services.EmailService;
 import com.annuaire.khalifa.annuaire.services.EmployeService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -89,6 +90,7 @@ public ResponseEntity<CombinedEmployeDTO> searchCombinedByIp(@RequestParam int i
 }
 
 //LA SUPPRESSION
+@PreAuthorize("hasRole('ADMIN')")
 @DeleteMapping("/{id}")
 public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
     boolean deleted = employeService.deleteEmploye(id);
@@ -108,25 +110,14 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
         return employeService.findById(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     //Creation d un nouvel employe
     public Employe createEmploye(@RequestBody Employe employe) {
         return employeService.createEmploye(employe);
     }
-//    //Modification d un employe
-//    @PutMapping("/{id}")
-//    public boolean updateEmploye(
-//            @PathVariable int id,
-//            @RequestBody Employe updatedEmploye) {
-//        // on reçoit un objet Employe contenant les nouvelles valeurs
-//        return employeService.updateEmploye(
-//                id,
-//                updatedEmploye.getIp(),
-//                updatedEmploye.getPassword(),
-//                updatedEmploye.getTelephone()
-//        );
-//    }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Employe> updateEmploye(
             @PathVariable int id,
@@ -156,8 +147,7 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
         }
     }
 
-
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<Employe> changeRole(@PathVariable int id) {
         return employeService.findById(id)
@@ -180,6 +170,7 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginRequest) {
@@ -221,6 +212,7 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
         return ResponseEntity.ok(dto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
 

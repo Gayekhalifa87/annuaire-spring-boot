@@ -1,12 +1,18 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';  // 👈 ici
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
+import { KeycloakService } from './app/core/keycloak/keycloak.service';
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideHttpClient(withInterceptorsFromDi()), // active les interceptors
-    provideRouter(routes)
-  ]
-}).catch(err => console.error(err));
+const keycloakService = new KeycloakService();
+
+keycloakService.init().then(() => {
+  bootstrapApplication(AppComponent, {
+    providers: [
+      provideRouter(routes),
+      provideHttpClient(),  // 👈 obligatoire en standalone
+      { provide: KeycloakService, useValue: keycloakService }
+    ]
+  });
+});
