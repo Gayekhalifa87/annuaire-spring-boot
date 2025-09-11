@@ -1,119 +1,66 @@
+
+//
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../core/auth.service';
+import { KeycloakService } from '../../../core/keycloak/keycloak.service';
 
 @Component({
   selector: 'app-connexion',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule],
   templateUrl: './connexion.component.html',
   styleUrls: ['./connexion.component.css']
 })
 export class ConnexionComponent implements OnInit {
 
-  connexionForm: FormGroup;
   private router = inject(Router);
-  private authService = inject(AuthService);
+  private keycloakService = inject(KeycloakService);
 
-  
-
-  emailErrorMessage = '';
-  passwordErrorMessage = '';
-  message = '';
-  showPassword = false; // On masque par défaut
-
-  isLoading = false; // Pour indiquer le chargement
-
-  constructor(private fb: FormBuilder) {
-    this.connexionForm = this.fb.group({
-      email: ['', [
-        Validators.required,
-        Validators.email,
-        Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
-      ]],
-      password: ['', [
-        Validators.required,
-        Validators.minLength(8)
-      ]]
-    });
-  }
+  isLoading = false;
+  isInitializing = true; // pour gérer le spinner si besoin
 
   ngOnInit() {
-    this.connexionForm.valueChanges.subscribe(() => {
-      this.emailErrorMessage = '';
-      this.passwordErrorMessage = '';
-      this.message = '';
+    // Lancement de l’init en arrière-plan
+    this.keycloakService.init().then(() => {
+      if (this.keycloakService.isLoggedIn()) {
+        console.log("✅ Déjà connecté :", this.keycloakService.getUserProfile());
+        this.router.navigate(['/admin']);
+      }
+    }).finally(() => {
+      this.isInitializing = false; // affiche le formulaire immédiatement
     });
   }
 
-
-
-    onLogin() {
-  if (this.connexionForm.invalid) {
-    const emailCtrl = this.connexionForm.get('email');
-    const pwdCtrl = this.connexionForm.get('password');
-
-    this.emailErrorMessage = emailCtrl?.hasError('required') ? 'Email requis' :
-                             emailCtrl?.hasError('email') ? 'Email invalide' : '';
-    this.passwordErrorMessage = pwdCtrl?.hasError('required') ? 'Mot de passe requis' :
-                                pwdCtrl?.hasError('minlength') ? 'Minimum 8 caractères' : '';
-    return;
-  }
-
-  const { email, password } = this.connexionForm.value;
-
-  this.isLoading = true; // ✅ Active le loader
-
-  this.authService.login(email, password).subscribe({
-    next: (res) => {
-      console.log('✅ Connexion réussie :', res);
-      this.authService.setCurrentUser(res);
-      this.router.navigate(['/admin']);
-      this.isLoading = false; // ✅ Désactive le loader
-    },
-    error: (err) => {
-      console.error('❌ Erreur de connexion :', err);
-      this.emailErrorMessage = '';
-      this.passwordErrorMessage = '';
-      this.message = '';
-
-      if (err.toLowerCase().includes('email')) {
-        this.emailErrorMessage = err;
-      } else if (err.toLowerCase().includes('mot de passe') || err.toLowerCase().includes('password')) {
-        this.passwordErrorMessage = err;
-      } else {
-        this.message = err;
+  /** 🔹 Connexion avec Keycloak */
+  async onLogin() {
+    this.isLoading = true;
+    try {
+      if (!this.keycloakService.isInitialized()) {
+        await this.keycloakService.init(); // Init si pas déjà fait
       }
-
-      this.isLoading = false; // ✅ Désactive le loader même en cas d'erreur
+      await this.keycloakService.login();
+      console.log("✅ Utilisateur connecté :", this.keycloakService.getUserProfile());
+      this.router.navigate(['/admin']);
+    } catch (err) {
+      console.error('❌ Erreur de connexion', err);
+    } finally {
+      this.isLoading = false;
     }
-  });
-}
-
-
-  /** 🔹 Toggle mot de passe */
-  togglePassword() {
-    this.showPassword = !this.showPassword;
   }
 
-  /** 🔹 Naviguer vers mot de passe oublié */
+  /** 🔹 Déconnexion */
+  async onLogout() {
+    await this.keycloakService.logout();
+  }
+
+  /** 🔹 Mot de passe oublié */
   forgotPassword() {
     this.router.navigate(['/forgotpassword']);
   }
 
-  /** 🔹 Retour */
+  /** 🔹 Retour accueil */
   retour() {
     this.router.navigate(['/accueil']);
-  }
-
-  forgot() {
-    
-    this.router.navigate(['/forgotpassword']);
-  }
-
-    back(): void {
-    this.router.navigate(['accueil/']); 
   }
 }

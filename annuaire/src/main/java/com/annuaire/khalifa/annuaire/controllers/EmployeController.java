@@ -1,5 +1,6 @@
 package com.annuaire.khalifa.annuaire.controllers;
 
+import com.annuaire.khalifa.annuaire.KeycloakTokenService;
 import com.annuaire.khalifa.annuaire.dto.CombinedEmployeDTO;
 import com.annuaire.khalifa.annuaire.dto.LoginDTO;
 import com.annuaire.khalifa.annuaire.external.ExternalApiMockService;
@@ -12,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -20,11 +22,13 @@ public class EmployeController {
     private final EmployeService employeService;
     private final EmailService emailService;
     private final ExternalApiMockService externalApiMockService;
+    private final KeycloakTokenService keycloakTokenService;
 
-    public EmployeController(EmployeService employeService, EmailService emailService, ExternalApiMockService externalApiMockService) {
+    public EmployeController(EmployeService employeService, EmailService emailService, ExternalApiMockService externalApiMockService, KeycloakTokenService keycloakTokenService) {
         this.employeService = employeService;
         this.emailService = emailService;
         this.externalApiMockService = externalApiMockService;
+        this.keycloakTokenService = keycloakTokenService;
     }
     //TESTONS LE MOCK
     @GetMapping("/test-mock/{externalId}")
@@ -90,7 +94,6 @@ public ResponseEntity<CombinedEmployeDTO> searchCombinedByIp(@RequestParam int i
 }
 
 //LA SUPPRESSION
-@PreAuthorize("hasRole('ADMIN')")
 @DeleteMapping("/{id}")
 public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
     boolean deleted = employeService.deleteEmploye(id);
@@ -117,7 +120,6 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
         return employeService.createEmploye(employe);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Employe> updateEmploye(
             @PathVariable int id,
@@ -147,7 +149,7 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @PatchMapping("/{id}")
     public ResponseEntity<Employe> changeRole(@PathVariable int id) {
         return employeService.findById(id)
@@ -171,46 +173,91 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+//
+//    @PostMapping("/login")
+//    public ResponseEntity<?> login(@RequestBody LoginDTO loginRequest) {
+//        String email = loginRequest.getEmail();
+//        String password = loginRequest.getPassword();
+//
+//        Optional<Employe> optionalEmploye = employeService.findByEmailMock(email);
+//
+//        if (optionalEmploye.isEmpty()) {
+//            // Email non trouvé
+//            return ResponseEntity
+//                    .status(401)
+//                    .body("Email inconnu ou utilisateur non trouvé");
+//        }
+//
+//        Employe employe = optionalEmploye.get();
+//
+//        if (!employeService.checkPassword(employe, password)) {
+//            // Mot de passe incorrect
+//            return ResponseEntity
+//                    .status(401)
+//                    .body("Mot de passe incorrect");
+//        }
+//
+//        // Récupération des infos externes
+//        ExternalEmployeDTO external = externalApiMockService.getExternalEmploye(employe.getEmployeId());
+//
+//        CombinedEmployeDTO dto = new CombinedEmployeDTO();
+//        dto.setId(employe.getId());
+//        dto.setNom(external.getNom());
+//        dto.setPrenom(external.getPrenom());
+//        dto.setIp(employe.getIp());
+//        dto.setTelephone(employe.getTelephone());
+//        dto.setRole(employe.getRole());
+//        dto.setPoste(external.getPoste());
+//        dto.setDirection(external.getDirection());
+//        dto.setService(external.getService());
+//
+//        return ResponseEntity.ok(dto);
+//    }
+//
+@PostMapping("/login")
+public ResponseEntity<?> loginWithKeycloak(@RequestBody LoginDTO loginRequest) {
+    String email = loginRequest.getEmail();
+    String password = loginRequest.getPassword();
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginRequest) {
-        String email = loginRequest.getEmail();
-        String password = loginRequest.getPassword();
-
-        Optional<Employe> optionalEmploye = employeService.findByEmailMock(email);
-
-        if (optionalEmploye.isEmpty()) {
-            // Email non trouvé
-            return ResponseEntity
-                    .status(401)
-                    .body("Email inconnu ou utilisateur non trouvé");
-        }
-
-        Employe employe = optionalEmploye.get();
-
-        if (!employeService.checkPassword(employe, password)) {
-            // Mot de passe incorrect
-            return ResponseEntity
-                    .status(401)
-                    .body("Mot de passe incorrect");
-        }
-
-        // Récupération des infos externes
-        ExternalEmployeDTO external = externalApiMockService.getExternalEmploye(employe.getEmployeId());
-
-        CombinedEmployeDTO dto = new CombinedEmployeDTO();
-        dto.setId(employe.getId());
-        dto.setNom(external.getNom());
-        dto.setPrenom(external.getPrenom());
-        dto.setIp(employe.getIp());
-        dto.setTelephone(employe.getTelephone());
-        dto.setRole(employe.getRole());
-        dto.setPoste(external.getPoste());
-        dto.setDirection(external.getDirection());
-        dto.setService(external.getService());
-
-        return ResponseEntity.ok(dto);
+    // Optional: vérifie dans ta DB locale
+    Optional<Employe> optionalEmploye = employeService.findByEmailMock(email);
+    if (optionalEmploye.isEmpty()) {
+        return ResponseEntity.status(401).body("Email inconnu ou utilisateur non trouvé");
     }
+
+    Employe employe = optionalEmploye.get();
+    if (!employeService.checkPassword(employe, password)) {
+        return ResponseEntity.status(401).body("Mot de passe incorrect");
+    }
+
+    // 🔑 Récupère le token Keycloak
+    Map<String, Object> token;
+    try {
+        token = keycloakTokenService.getToken(email, password);
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Impossible de récupérer le token Keycloak : " + e.getMessage());
+    }
+
+    // Récupère les infos externes
+    ExternalEmployeDTO external = externalApiMockService.getExternalEmploye(employe.getEmployeId());
+    CombinedEmployeDTO dto = new CombinedEmployeDTO();
+    dto.setId(employe.getId());
+    dto.setNom(external.getNom());
+    dto.setPrenom(external.getPrenom());
+    dto.setIp(employe.getIp());
+    dto.setTelephone(employe.getTelephone());
+    dto.setRole(employe.getRole());
+    dto.setPoste(external.getPoste());
+    dto.setDirection(external.getDirection());
+    dto.setService(external.getService());
+
+    // Renvoie infos + token
+    return ResponseEntity.ok(Map.of(
+            "user", dto,
+            "token", token.get("access_token")
+    ));
+}
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/logout")

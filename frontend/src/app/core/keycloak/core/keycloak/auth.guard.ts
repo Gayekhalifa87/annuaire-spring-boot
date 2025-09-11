@@ -1,15 +1,31 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { KeycloakService } from '../keycloak.service';
+// auth.guard.ts
+import { Injectable } from '@angular/core';
+import { CanActivate, Router } from '@angular/router';
+// Remonte correctement vers le service Keycloak
+import { KeycloakService } from '../../keycloak.service';
 
-export const authGuard: CanActivateFn = () => {
-  const keycloakService = inject(KeycloakService);
-  const router = inject(Router);
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
 
-  if (!keycloakService.isLoggedIn()) {
-    router.navigate(['/accueil']); // redirige vers accueil si pas connecté
-    return false;
+  constructor(
+    private router: Router,
+    private keycloakService: KeycloakService
+  ) {}
+
+  async canActivate(): Promise<boolean> {
+    try {
+      if (this.keycloakService.isLoggedIn()) {
+        return true;
+      } else {
+        await this.keycloakService.login();
+        return false;
+      }
+    } catch (err: any) {
+      console.error('❌ AuthGuard : impossible de se connecter', err);
+      this.router.navigate(['/connexion']);
+      return false;
+    }
   }
-
-  return true;
-};
+}

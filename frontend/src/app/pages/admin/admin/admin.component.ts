@@ -130,7 +130,6 @@ export class AdminComponent {
     });
 }
 
-
   /** 🔹 Supprimer un employé */
   deleteEmployee(emp: Employe) {
     if (!emp.id) return;
@@ -204,3 +203,4 @@ export class AdminComponent {
 
 
 }
+

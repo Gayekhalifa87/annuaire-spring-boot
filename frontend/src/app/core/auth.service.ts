@@ -1,61 +1,53 @@
+// src/app/core/auth.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { KeycloakService } from './keycloak/keycloak.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  private apiUrl = 'http://localhost:8080/api/employes/login';
-
-  // ✅ BehaviorSubject pour suivre l'utilisateur connecté
   private _currentUser = new BehaviorSubject<any>(null);
   public currentUser$ = this._currentUser.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private keycloakService: KeycloakService) {}
 
-  /** 🔹 Login */
-  login(email: string, password: string): Observable<any> {
-    const body = { email, password };
-    return this.http.post<any>(this.apiUrl, body)
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          let msg = '';
-          if (error.status === 401) {
-            msg = error.error || 'Email ou mot de passe incorrect';
-          } else if (error.status === 0) {
-            msg = 'Impossible de contacter le serveur';
-          } else {
-            msg = `Erreur ${error.status} : ${error.statusText}`;
-          }
-          return throwError(() => msg);
-        })
-      );
+  /** 🔹 Login via Keycloak */
+  async login(): Promise<void> {
+    await this.keycloakService.login();
+    if (this.keycloakService.isLoggedIn()) {
+      const profile = this.keycloakService.getUserProfile();
+      localStorage.setItem('token', this.keycloakService.getToken() || '');
+      localStorage.setItem('currentUser', JSON.stringify(profile));
+      this._currentUser.next(profile);
+    }
   }
 
-  /** 🔹 Mettre à jour l'utilisateur connecté */
-  setCurrentUser(user: any) {
+  /** 🔹 Logout via Keycloak */
+  async logout(): Promise<void> {
+    this._currentUser.next(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    await this.keycloakService.logout();
+  }
+
+  /** 🔹 Retourne le token actuel (JWT Keycloak) */
+  getToken(): string | null {
+    return this.keycloakService.getToken() || null;
+  }
+
+  /** 🔹 Définit l’utilisateur courant (si besoin) */
+  public setCurrentUser(user: any) {
     this._currentUser.next(user);
   }
 
-  /** 🔹 Récupérer l'utilisateur actuel */
-  get currentUser(): any {
+  /** 🔹 Retourne l’utilisateur courant */
+  public get currentUser(): any {
     return this._currentUser.value;
   }
 
-
-  logout() {
-  // Supprime l'utilisateur localement
-  this._currentUser.next(null);
-  localStorage.removeItem('currentUser');
-
-  // Optionnel : notifier le backend
-  this.http.post('http://localhost:8080/api/employes/logout', {}).subscribe({
-    next: () => console.log('Déconnexion serveur OK'),
-    error: err => console.error('Erreur lors de la déconnexion', err)
-  });
-}
-
+  /** 🔹 Vérifie si connecté */
+  isLoggedIn(): boolean {
+    return this.keycloakService.isLoggedIn();
+  }
 }

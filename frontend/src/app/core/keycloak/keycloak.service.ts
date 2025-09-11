@@ -1,41 +1,85 @@
 import { Injectable } from '@angular/core';
-import Keycloak from 'keycloak-js';
+import Keycloak, { KeycloakInstance } from 'keycloak-js';
 
 @Injectable({
   providedIn: 'root'
 })
 export class KeycloakService {
-  private keycloak: Keycloak | null = null;
+  private keycloak!: KeycloakInstance;
+  private initialized = false;
 
-  init(): Promise<boolean> {
-    this.keycloak = new Keycloak({
-      url: 'http://localhost:8180',
-      realm: 'annuaire',
-      clientId: 'annuaire-frontend' 
-    });
-
-    // init() de keycloak-js retourne une Promise<boolean>
-    return this.keycloak.init({
-      onLoad: 'login-required',
-      checkLoginIframe: false
-    });
+  constructor() {
+    // ⚡ Pas d’instanciation directe ici → on le fait dans init()
   }
 
-  login() {
-    this.keycloak?.login();
+  /** Initialise Keycloak */
+
+  private initPromise: Promise<void> | null = null;
+
+async init(): Promise<void> {
+  if (this.initPromise) return this.initPromise; // ← si déjà initialisé, retourne la promesse
+
+  this.keycloak = new Keycloak({
+    url: 'http://localhost:8180/',
+    realm: 'annuaire',
+    clientId: 'annuaire-frontend'
+  });
+
+  this.initPromise = this.keycloak.init({
+    onLoad: 'check-sso',
+    silentCheckSsoRedirectUri: window.location.origin + '/assets/silent-check-sso.html'
+  }).then(() => {
+    this.initialized = true;
+    if (this.isLoggedIn()) {
+      console.log('✅ Connecté, token actuel :', this.getToken());
+    }
+  }).catch(err => {
+    console.error('❌ Erreur Keycloak', err);
+  });
+
+  return this.initPromise;
+}
+
+  isInitialized(): boolean {
+    return this.initialized;
   }
 
-  logout() {
-    this.keycloak?.logout();
+  /** Connexion */
+  async login(): Promise<void> {
+    if (!this.initialized) throw new Error("Keycloak non initialisé !");
+    return this.keycloak.login();
   }
 
+  /** Déconnexion */
+  async logout(): Promise<void> {
+    if (!this.initialized) return;
+    return this.keycloak.logout({ redirectUri: window.location.origin });
+  }
+
+  /** Retourne le token JWT actuel */
   getToken(): string | undefined {
-    return this.keycloak?.token;
+    return this.initialized ? this.keycloak.token : undefined;
   }
 
+  /** Vérifie si l'utilisateur est connecté */
   isLoggedIn(): boolean {
-    return !!this.keycloak?.token;
+    return this.initialized && !!this.keycloak.token;
   }
 
+  /** Profil utilisateur (username, email, roles, etc.) */
+  getUserProfile(): any {
+    return this.initialized ? this.keycloak.tokenParsed : null;
+  }
 
+  /** Rafraîchir le token */
+  async updateToken(minValidity: number = 30): Promise<boolean> {
+    if (!this.initialized) return false;
+    try {
+      const refreshed = await this.keycloak.updateToken(minValidity);
+      return refreshed;
+    } catch (err) {
+      console.error('❌ Erreur lors du refresh du token', err);
+      return false;
+    }
+  }
 }
