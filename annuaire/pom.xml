@@ -82,6 +82,19 @@
             <version>25.0.3</version> <!-- Vérifier la dernière version -->
         </dependency>
 
+        <!-- Spring Security OAuth2 Resource Server -->
+        <!-- Maven -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- JWT support -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
