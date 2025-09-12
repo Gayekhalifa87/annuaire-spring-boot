@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { KeycloakService } from './keycloak/keycloak.service';
 
 export interface Employe {
   id?: number;          
@@ -26,7 +25,7 @@ export class EmployeService {
   private apiUrl = 'http://localhost:8080/api/employes';
 
   
-  constructor(private http: HttpClient, private keycloakService: KeycloakService) { }
+  constructor(private http: HttpClient) { }
 
   // Tous les employés combinés
   getAllCombinedEmployes(): Observable<Employe[]> {

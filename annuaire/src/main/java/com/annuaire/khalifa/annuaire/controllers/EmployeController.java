@@ -7,10 +7,12 @@ import com.annuaire.khalifa.annuaire.external.ExternalEmployeDTO;
 import com.annuaire.khalifa.annuaire.models.Employe;
 import com.annuaire.khalifa.annuaire.services.EmailService;
 import com.annuaire.khalifa.annuaire.services.EmployeService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -213,10 +215,14 @@ public ResponseEntity<Void> deleteEmploye(@PathVariable int id) {
 
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public void logout(HttpServletResponse response, @RequestHeader("Authorization") String authHeader) throws IOException {
+        // Supprime le token côté serveur (facultatif si JWT)
 
-        return ResponseEntity.ok().build();
+        // Redirige vers Keycloak pour terminer la session
+        String logoutUrl = "http://localhost:8180/realms/annuaire/protocol/openid-connect/logout?redirect_uri=http://localhost:4200";
+        response.sendRedirect(logoutUrl);
     }
+
 
 
 

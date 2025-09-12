@@ -195,10 +195,10 @@ export class AdminComponent {
     this.calculatePagination();
   }
 
-
-  logout() {
-  this.authService.logout();
-  this.router.navigate(['/acccueil']);
+  /** 🔹 Déconnexion */
+logout(event: Event) {
+  event.preventDefault(); // 🔹 empêche la navigation #
+  this.authService.logout(); // 🔹 logout Keycloak → redirection vers /accueil
 }
 
 

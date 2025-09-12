@@ -1,4 +1,3 @@
-// src/app/core/auth.service.ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { KeycloakService } from './keycloak/keycloak.service';
@@ -10,44 +9,50 @@ export class AuthService {
   private _currentUser = new BehaviorSubject<any>(null);
   public currentUser$ = this._currentUser.asObservable();
 
-  constructor(private keycloakService: KeycloakService) {}
-
-  /** 🔹 Login via Keycloak */
-  async login(): Promise<void> {
-    await this.keycloakService.login();
-    if (this.keycloakService.isLoggedIn()) {
-      const profile = this.keycloakService.getUserProfile();
-      localStorage.setItem('token', this.keycloakService.getToken() || '');
-      localStorage.setItem('currentUser', JSON.stringify(profile));
-      this._currentUser.next(profile);
-    }
+  constructor(private keycloakService: KeycloakService) {
+    // Vérification session Keycloak au démarrage
+    this.keycloakService.init(false).then(() => {
+      this._currentUser.next(
+        this.keycloakService.isLoggedIn() ? this.keycloakService.getUserProfile() : null
+      );
+    });
   }
 
-  /** 🔹 Logout via Keycloak */
+  /** Login */
+  async login(): Promise<void> {
+    if (!this.keycloakService.isInitialized()) {
+      await this.keycloakService.init(true);
+    }
+    this.keycloakService.login();
+  }
+
+  /** Logout complet */
   async logout(): Promise<void> {
     this._currentUser.next(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('currentUser');
-    await this.keycloakService.logout();
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 🔹 Redirection Keycloak → tue session et cookies HttpOnly
+    await this.keycloakService.logout('/accueil');
   }
 
-  /** 🔹 Retourne le token actuel (JWT Keycloak) */
+  /** Token */
   getToken(): string | null {
-    return this.keycloakService.getToken() || null;
+    return this.keycloakService.getToken();
   }
 
-  /** 🔹 Définit l’utilisateur courant (si besoin) */
-  public setCurrentUser(user: any) {
+  /** Vérifie si connecté */
+  isLoggedIn(): boolean {
+    return this.keycloakService.isLoggedIn();
+  }
+
+  /** Définir utilisateur courant */
+  setCurrentUser(user: any) {
     this._currentUser.next(user);
   }
 
-  /** 🔹 Retourne l’utilisateur courant */
-  public get currentUser(): any {
+  /** Retourne utilisateur courant */
+  get currentUser(): any {
     return this._currentUser.value;
-  }
-
-  /** 🔹 Vérifie si connecté */
-  isLoggedIn(): boolean {
-    return this.keycloakService.isLoggedIn();
   }
 }
